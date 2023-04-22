@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 import { useNavigate } from 'react-router-dom';
 import { useSignIn } from 'react-auth-kit';
-import { login } from '../../api';
+import { login } from '../../api/auth';
 
 const Login = () => {
   const signIn = useSignIn()
@@ -18,7 +18,10 @@ const Login = () => {
       console.log('Login successful!', token);
       if (signIn({ token, tokenType: 'Bearer', authState: user, expiresIn: 500000 })) {
         console.log('Signed IN')
-        navigate('/home')
+
+        setTimeout(() => {
+          navigate('/home')
+        }, 500)
       } else {
         console.log('NOT SIGNED IN')
       }

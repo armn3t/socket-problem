@@ -1,4 +1,4 @@
-import mongoose, { Document, Model } from 'mongoose';
+import mongoose, { Document, Model } from 'mongoose'
 
 export enum UserRoles {
   Standard,
@@ -20,6 +20,6 @@ const userSchema = new mongoose.Schema<UserDocument>(
   { timestamps: true }
 );
 
-const User: Model<UserDocument> = mongoose.model<UserDocument>('User', userSchema);
+const User: Model<UserDocument> = mongoose.model<UserDocument>('User', userSchema)
 
-export default User;
+export default User

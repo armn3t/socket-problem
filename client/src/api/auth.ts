@@ -1,7 +1,7 @@
 
-import axios from 'axios';
+import { API_BASE_URL } from './url';
 
-const API_BASE_URL = 'http://localhost:4001/api';
+import axios from 'axios';
 
 export const register = async (email: string, password: string) => {
   try {

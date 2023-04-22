@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
-import { RequireAuth, useIsAuthenticated, useAuthUser } from 'react-auth-kit'
+import { useAuthUser, useIsAuthenticated } from 'react-auth-kit'
 
 
 import Welcome from './pages/welcome/welcome.page'
@@ -11,15 +11,13 @@ import Error from './pages/error/error.page'
 const PrivateRoute = ({ Component }: { Component: () => JSX.Element }) => {
   const isAuthenticated = useIsAuthenticated();
   const auth = isAuthenticated();
-  return auth ? <Component /> : <Navigate to="/login" />; 
+  const user = useAuthUser()()
+  return auth && user ? <Component /> : <Navigate to="/login" />; 
 }
 
 
 
 function AppRoutes() {
-  const auth = useAuthUser()
-
-  console.log(auth(), 'AUTH')
   return (
     <div>
       <Routes>

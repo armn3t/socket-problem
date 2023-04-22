@@ -11,7 +11,7 @@ import Navigation from './components/navigation';
 function App() {
   return (
     <div className="App">
-      <AuthProvider authType='cookie' authName='_auth'>
+      <AuthProvider authType='localstorage' authName='_auth'>
         <BrowserRouter>
           <Navigation/>
           <AppRoutes/>

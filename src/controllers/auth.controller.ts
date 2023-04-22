@@ -6,7 +6,7 @@ import User, { UserDocument } from '../models/user.model';
 
 function getAuthData(user: UserDocument) {
   return {
-    token: jwt.sign({ userId: user._id }, process.env.JWT_SECRET),
+    token: jwt.sign({ userId: user._id, username: user.email }, process.env.JWT_SECRET),
     user: {
       id: user._id,
       username: user.email,
