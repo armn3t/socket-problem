@@ -15,7 +15,7 @@ const Register = () => {
     event.preventDefault();
 
     try {
-      const { token, ...user } = await register(email, password)
+      const { token, user } = await register(email, password)
 
       console.log('Registration successful!');
       if (signIn({ token, tokenType: 'Bearer', authState: user, expiresIn: 500000 })) {

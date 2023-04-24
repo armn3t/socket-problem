@@ -14,12 +14,12 @@ import { Channel } from '../../types'
 const Home = () => {
   const [socket, setSocket] = useState<Socket | null>(null)
   const [channels, setChannels] = useState<Channel[]>([])
-  const auth = useAuthUser()()
+  const auth = useAuthUser()
 
   const authHeader = useAuthHeader()
   const [token, _] = useState(authHeader().split(' ')[1])
 
-  const user = auth?.user ?? null
+  const user = auth()
 
 
   const fetchData = useCallback(async () => {
@@ -29,6 +29,11 @@ const Home = () => {
 
   const handleNewChannel = (newChannel: Channel) => {
     setChannels([ ...channels, newChannel ])
+  }
+
+  const handleChannelDelete = (channel: Channel) => {
+    console.log('HANDLE CHANNEL DELETE', channel)
+    setChannels(channels.filter((oneChannel) => oneChannel.alias !== channel.alias))
   }
 
   useEffect(() => {
@@ -59,7 +64,10 @@ const Home = () => {
         {user && (
           <div>
             <AddChannel onNewChannel={handleNewChannel}/>
-            {socket && <SocketMain socket={socket} user={user} channels={channels}/>}
+            {socket && (
+              <SocketMain socket={socket} user={user} channels={channels}
+                onChannelDelete={handleChannelDelete}/>
+            )}
           </div>
         )}
       </div>

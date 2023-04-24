@@ -16,4 +16,6 @@ router.post('/auth/login', authController.login)
 router.get('/channel', isAuthenticated, channelController.fetch)
 router.post('/channel', isAuthenticated, channelController.create)
 
+router.get('/channel/:_id', isAuthenticated, channelController.statistics)
+
 export default router;

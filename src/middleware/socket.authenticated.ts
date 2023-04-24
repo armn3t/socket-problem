@@ -1,10 +1,10 @@
+import { Socket } from 'socket.io'
 import socketUserMap from '../socket/socket-map'
 
 import { decodeToken } from '../utils/token-utils'
 
-const socketisAuthenticated = async (socket, next) => {
+const socketisAuthenticated = async (socket: Socket, next: Function) => {
   const token = socket.handshake.auth.token
-  
   if (!token) return next(new Error('Unauthorized'))
 
   const decoded = await decodeToken(token)

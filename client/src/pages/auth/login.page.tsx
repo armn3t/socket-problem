@@ -14,7 +14,7 @@ const Login = () => {
     event.preventDefault();
 
     try {
-      const { token, ...user } = await login(email, password);
+      const { token, user } = await login(email, password);
       console.log('Login successful!', token);
       if (signIn({ token, tokenType: 'Bearer', authState: user, expiresIn: 500000 })) {
         console.log('Signed IN')

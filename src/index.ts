@@ -6,7 +6,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import router from './router';
 
-import socketWrapper from './socket/socket.wrapper';
+import socketWrapper, { InterEvents, ListenEvents, ServerEvents, SocketData } from './socket/socket.wrapper';
 
 dotenv.config();
 
@@ -19,11 +19,14 @@ mongoose.connect(process.env.MONGODB_URI);
 app.use('/api', router);
 
 const httpServer = createServer(app)
-const io = new IOServer(httpServer, {
-  cors: {
-    origin: 'http://localhost:4000'
+const io = new IOServer<ListenEvents, ServerEvents, InterEvents, SocketData>(
+  httpServer,
+  {
+    cors: {
+      origin: 'http://localhost:4000'
+    }
   }
-})
+)
 
 httpServer.listen(process.env.PORT, () => {
   console.log(`Server started on port ${process.env.PORT}`);

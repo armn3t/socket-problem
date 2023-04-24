@@ -2,18 +2,27 @@
 export interface Message {
   _id: string
   content: string
-  user: string
+  user: {
+    email: string
+  }
+  createdAt: string
   channel: string
 }
 
 export interface Channel {
   _id: string
   alias: string
+  createdAt: string
 }
 
 export interface ChannelData {
   messages: Message[],
   channelUsers: Set<string>
+}
+
+export interface ChannelStatistics {
+  messages: Message[]
+  messageCount: number
 }
 
 export interface SocketUserPayload {
@@ -41,4 +50,9 @@ export interface UserJoinedChannelPayload {
 export interface MessageReceivedPayload {
   message: Message
   alias: string
+}
+
+export enum UserRoles {
+  Standar,
+  Admin
 }

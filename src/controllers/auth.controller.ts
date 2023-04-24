@@ -1,12 +1,13 @@
 
-import { Request, Response } from 'express';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import User, { UserDocument } from '../models/user.model';
+import { Request, Response } from 'express'
+import bcrypt from 'bcryptjs'
+import User, { UserDocument } from '../models/user.model'
 
-function getAuthData(user: UserDocument) {
+import { signToken, decodeToken } from '../utils/token-utils'
+
+async function getAuthData(user: UserDocument) {
   return {
-    token: jwt.sign({ userId: user._id, username: user.email }, process.env.JWT_SECRET),
+    token: await signToken(user),
     user: {
       id: user._id,
       username: user.email,
@@ -39,7 +40,7 @@ const authController = {
       // Save the new user document
       await newUser.save();
 
-      res.status(201).json({ message: 'User registered successfully', ...getAuthData(newUser) });
+      res.status(201).json({ message: 'User registered successfully', ...(await getAuthData(newUser)) });
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: 'Server error' });
@@ -63,7 +64,7 @@ const authController = {
         return res.status(401).json({ message: 'Invalid credentials' });
       }
       
-      res.status(200).json({ ...getAuthData(user) });
+      res.status(200).json({ ...(await getAuthData(user)) });
     } catch (error) {
       console.error(error);
       res.status(500).json({ message: 'Server error' });

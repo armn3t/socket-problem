@@ -11,3 +11,14 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.chat-scroll {
+  overflow-y: auto;
+  min-height: 500px;
+  max-height: 500px;
+}
+
+.chat-body {
+  display: flex;
+  flex-direction: column-reverse;
+}
