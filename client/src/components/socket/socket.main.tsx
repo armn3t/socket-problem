@@ -9,7 +9,6 @@ import {
   ChannelJoinedPayload,
   ChannelData,
   ChannelStatistics,
-  ChatUsers,
   MessageReceivedPayload,
   UserJoinedChannelPayload,
   SocketUserPayload,
@@ -18,7 +17,7 @@ import {
 import Chat from '../channels/chat.component'
 import SocketUsers from './socket.users.component'
 import ChannelStatisticsComponent from '../channels/channel-statistics.component'
-import { join } from 'path'
+import { promiseModal } from '../channel.auth.modal'
 
 type Props = {
   channels: Channel[],
@@ -27,12 +26,12 @@ type Props = {
   onChannelDelete: (channel: Channel) => void
 }
 
-const joinedChannelsMap = new Map<string, ChannelData>()
 
 const SocketMain = ({ channels, user, socket, onChannelDelete }: Props) => {
   const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null)
   const [selectedChannelData, setSelectedChannelData] = useState<ChannelData | null>(null)
   const [socketUsers, setSocketUsers] = useState<Map<string, Partial<SocketUserPayload>>>(new Map())
+  const [joinedChannelsMap, setJoinedChannelsMap] = useState(new Map<string, ChannelData>())
   const [isConnected, setIsConnected] = useState(false)
   const [channelStatistics, setChannelStatistics] = useState<ChannelStatistics | null>(null)
 
@@ -43,14 +42,18 @@ const SocketMain = ({ channels, user, socket, onChannelDelete }: Props) => {
   }
   
   const handleChannelChange = async (channel: Channel) => {
-    setSelectedChannel(channel)
-
-    if (joinedChannelsMap.has(channel.alias)) 
+    if (joinedChannelsMap.has(channel.alias)) {
+      setSelectedChannel(channel)
       setSelectedChannelData(joinedChannelsMap.get(channel.alias) || null)
-    else socket.emit('one:channel:join', channel)
-
-    const { messages, messageCount } = await fetchStatistics(channel)
-    setChannelStatistics({ messages, messageCount })
+    } 
+    else {
+      if (channel.protected) {
+        const password = await promiseModal()
+        socket.emit('one:channel:join', { channel, password })
+      } else {
+        socket.emit('one:channel:join', { channel })
+      }
+    }
   }
 
   const handleStatisticsRefresh = async () => {
@@ -64,7 +67,9 @@ const SocketMain = ({ channels, user, socket, onChannelDelete }: Props) => {
     if (selectedChannel?.alias === channel.alias) {
       resetSelectedChannel()
     }
-    joinedChannelsMap.delete(channel.alias)
+    const newChannelsMap = new Map(joinedChannelsMap)
+    newChannelsMap.delete(channel.alias)
+    setJoinedChannelsMap(newChannelsMap)
     socket.emit('one:channel:leave', channel)
   }
 
@@ -84,12 +89,10 @@ const SocketMain = ({ channels, user, socket, onChannelDelete }: Props) => {
   }
 
   const handleMessageDelete = async (message: Message, alias: string) => {
-    console.log('DELETE MESSAGE', message, alias)
     socket.emit('one:channel:message:delete', { alias, message })
   }
 
   const handleUserRemove = async (socketId: string, alias: string) => {
-    console.log('USER REMOVE', socketId, alias)
     socket.emit('one:channel:user:remove', { socketId, alias })
   }
 
@@ -111,10 +114,19 @@ const SocketMain = ({ channels, user, socket, onChannelDelete }: Props) => {
       setSocketUsers(new Map(payload.users))
     }
 
-    function onChannelJoined(payload: ChannelJoinedPayload) {
+    async function onChannelJoined(payload: ChannelJoinedPayload) {
       const { channel, messages, channelUsers } = payload
-      joinedChannelsMap.set(channel.alias, { messages, channelUsers: new Set(channelUsers) })
-      setSelectedChannelData(joinedChannelsMap.get(channel.alias) || null)
+
+      const channelData = { messages, channelUsers: new Set(channelUsers) }
+
+      const newChannelsMap = new Map(joinedChannelsMap)
+      newChannelsMap.set(channel.alias, channelData)
+      setJoinedChannelsMap(newChannelsMap)
+      setSelectedChannel(channel)
+      setSelectedChannelData(channelData)
+
+      const { messages: statisticsMessages, messageCount } = await fetchStatistics(channel)
+      setChannelStatistics({ messages: statisticsMessages, messageCount })
     }
 
     function onChannelRemoved({ alias }: { alias: string }) {
@@ -124,7 +136,8 @@ const SocketMain = ({ channels, user, socket, onChannelDelete }: Props) => {
         setChannelStatistics(null)
       }
 
-      joinedChannelsMap.delete(alias)
+      const newChannelsMap = new Map(joinedChannelsMap)
+      newChannelsMap.delete(alias)
     }
 
     function onChannelUserJoined({ alias, socketId }: UserJoinedChannelPayload) {
@@ -134,7 +147,10 @@ const SocketMain = ({ channels, user, socket, onChannelDelete }: Props) => {
       const newChannelData = { ...channelData }
       newChannelData.channelUsers.add(socketId)
 
-      joinedChannelsMap.set(alias, newChannelData)
+      const newChannelsMap = new Map(joinedChannelsMap)
+      newChannelsMap.set(alias, newChannelData)
+      setJoinedChannelsMap(newChannelsMap)
+
       if (selectedChannel?.alias === alias) setSelectedChannelData(newChannelData)
     }
 
@@ -145,7 +161,10 @@ const SocketMain = ({ channels, user, socket, onChannelDelete }: Props) => {
       const newChannelData = { ...channelData }
 
       newChannelData.channelUsers.delete(socketId)
-      joinedChannelsMap.set(alias, newChannelData)
+
+      const newChannelsMap = new Map(joinedChannelsMap)
+      newChannelsMap.set(alias, newChannelData)
+      setJoinedChannelsMap(newChannelsMap)
       
       if (selectedChannel?.alias === alias) setSelectedChannelData(newChannelData)
     }
@@ -155,7 +174,11 @@ const SocketMain = ({ channels, user, socket, onChannelDelete }: Props) => {
         setSelectedChannel(null)
         setSelectedChannelData(null)
       }
-      joinedChannelsMap.delete(channel.alias)
+
+      const newChannelsMap = new Map(joinedChannelsMap)
+      newChannelsMap.delete(channel.alias)
+      setJoinedChannelsMap(newChannelsMap)
+      
       onChannelDelete(channel)
     }
 
@@ -167,7 +190,11 @@ const SocketMain = ({ channels, user, socket, onChannelDelete }: Props) => {
         ...channelData,
         messages: channelData.messages.filter((oneMessage: Message) => oneMessage._id !== message._id)
       }
-      joinedChannelsMap.set(alias, newChannelData)
+
+      const newChannelsMap = new Map(joinedChannelsMap)
+      newChannelsMap.set(alias, newChannelData)
+      setJoinedChannelsMap(newChannelsMap)
+      
 
       if (selectedChannel?.alias === alias) setSelectedChannelData(newChannelData)
     }
@@ -177,9 +204,16 @@ const SocketMain = ({ channels, user, socket, onChannelDelete }: Props) => {
       if (!channelData) return
 
       const newChannelData = { ...channelData, messages: [ ...channelData.messages, message ] }
-      joinedChannelsMap.set(alias, newChannelData)
+      
+      const newChannelsMap = new Map(joinedChannelsMap)
+      newChannelsMap.set(alias, newChannelData)
+      setJoinedChannelsMap(newChannelsMap)
 
       if (selectedChannel?.alias === alias) setSelectedChannelData(newChannelData)
+    }
+
+    function onUnauthorized({ message }: { message: string }) {
+      alert(message)
     }
 
     socket.on('connect', onConnect)
@@ -194,7 +228,7 @@ const SocketMain = ({ channels, user, socket, onChannelDelete }: Props) => {
     socket.on('all:channel:deleted', onChannelDeleted)
     socket.on('all:channel:message:received', onChannelMessageReceived)
     socket.on('all:channel:message:deleted', onChannelMessageDeleted)
-
+    socket.on('unauthorized', onUnauthorized)
 
     return () => {
       socket.off('connect', onConnect)
@@ -209,8 +243,9 @@ const SocketMain = ({ channels, user, socket, onChannelDelete }: Props) => {
       socket.off('all:channel:deleted', onChannelDeleted)
       socket.off('all:channel:message:received', onChannelMessageReceived)
       socket.off('all:channel:message:deleted', onChannelMessageDeleted)
+      socket.off('unauthorized', onUnauthorized)
     }
-  }, [socket, selectedChannel, socketUsers, setSocketUsers, onChannelDelete])
+  }, [socket, selectedChannel, socketUsers, setSocketUsers, onChannelDelete, joinedChannelsMap])
 
   if (!isConnected) return (
     <div> NOT CONNECTED TO SERVER </div>
@@ -218,7 +253,6 @@ const SocketMain = ({ channels, user, socket, onChannelDelete }: Props) => {
 
   return (
     <div>
-      {/* Socket is {isConnected ? 'connected' : 'disconnected'} */}
       <div>
       <ChannelStatisticsComponent channel={selectedChannel} statistics={channelStatistics}
         onStatisticsRefresh={handleStatisticsRefresh}/>
@@ -235,6 +269,7 @@ const SocketMain = ({ channels, user, socket, onChannelDelete }: Props) => {
           onMessageDelete={handleMessageDelete}
           onUserRemove={handleUserRemove}
           users={socketUsers}
+          joinedChannelsMap={joinedChannelsMap}
           />
       </div>
       <div>

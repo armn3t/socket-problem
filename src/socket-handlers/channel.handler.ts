@@ -3,6 +3,7 @@ import Channel, { ChannelDocument } from '../models/channel.model'
 import { UserDocument } from '../models/user.model'
 import Message from '../models/message.model'
 import { isAdmin } from '../utils/user-utils'
+import { channelAuthenticated } from '../utils/channel-utils'
 
 import socketUserMap from '../socket/socket-map'
 
@@ -19,16 +20,21 @@ export const channelHandler = (io: Server, socket: Socket) => {
     const { alias } = channel
     await Message.find({ channel: channel._id }).deleteMany()
     await Channel.deleteOne({ _id: channel._id })
-    console.log('CHANNEL DELETE', alias, user)
 
     io.in(channel.alias).socketsLeave(channel.alias)
 
     io.emit('all:channel:deleted', channel)
   })
 
-  socket.on('one:channel:join', async (channel: ChannelDocument) => {
+  socket.on('one:channel:join', async (payload: { channel: ChannelDocument, password?: string }) => {
+    const { channel, password } = payload
     const { alias } = channel
-    console.log('Join channel', alias)
+
+    if (channel.protected && !(await channelAuthenticated(channel, password))) {
+      socket.emit('unauthorized', { message: 'You are not authorized to join this channel' })
+      return 
+    }
+
 
     const messages = await Message.find({ channel: channel._id })
       .sort({ createdAt: -1 })
@@ -37,7 +43,6 @@ export const channelHandler = (io: Server, socket: Socket) => {
     socket.join(channel.alias)
 
     const channelUsers = (await io.in(channel.alias).fetchSockets()).map(socket => socket.id)
-    console.log(channelUsers, 'CHANNEL USERS')
 
     socket.emit('one:channel:joined', { messages: messages.reverse(), channel, channelUsers })
     io.to(channel.alias).emit('all:channel:user:joined', {
@@ -88,7 +93,6 @@ export const channelHandler = (io: Server, socket: Socket) => {
 
     await newMessage.save()
     await newMessage.populate('user')
-    console.log('EMIT CHANNEL MESSAGE')
     io.to(alias).emit('all:channel:message:received', { message: newMessage, alias })
   })
 

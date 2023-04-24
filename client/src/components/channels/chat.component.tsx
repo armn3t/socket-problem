@@ -4,11 +4,14 @@ import { useAuthUser } from 'react-auth-kit'
 
 import { Channel, ChannelData, Message, SocketUserPayload, UserRoles } from '../../types'
 
+import { join } from 'path'
+
 type Props = {
   channels: any[],
   selectedChannel: Channel | null,
   selectedChannelData: ChannelData | null
   users: Map<string, Partial<SocketUserPayload>>
+  joinedChannelsMap: Map<string, ChannelData>
   onChannelChange: (channel: Channel) => void
   onChannelDelete: (channel: Channel) => void
   onChannelLeaving: (channel: Channel) => void
@@ -22,6 +25,7 @@ const Chat = ({
   selectedChannel,
   selectedChannelData,
   users,
+  joinedChannelsMap,
   onChannelChange,
   onChannelDelete,
   onChannelLeaving,
@@ -43,6 +47,7 @@ const Chat = ({
   }
 
   const handleChannelChange = (channel: Channel) => {
+    console.log(channel, 'HANDLE CHANNEL CHANGE')
     onChannelChange(channel)
   }
 
@@ -62,6 +67,10 @@ const Chat = ({
     onUserRemove(socketId, alias)
   }
 
+  const checkChannelActive = (channel: Channel): boolean => {
+    return Boolean(joinedChannelsMap.get(channel.alias))
+  }
+
   return (
     <div className='container'>
       <div className='row'>
@@ -70,20 +79,20 @@ const Chat = ({
             <div className='card-body chat-scroll'>
               <ul className='list-group list-group-flush'>
                 {channels.map((channel: Channel) => (
-                  <li key={channel.alias} className='list-group-item'>
+                  <li key={channel.alias} className={`list-group-item ${checkChannelActive(channel) && 'list-group-item-primary'}`}>
                     <div className='d-flex w-100 justify-content-between'>
 
                       <span onClick={() => handleChannelChange(channel)}>
                         {channel.alias}
                       </span>
                       <div>
-                        <a className='text-secondary' onClick={() => {handleChannelLeaving(channel)}}>
+                        <button className='btn btn-link text-secondary' onClick={() => {handleChannelLeaving(channel)}}>
                           &times;
-                        </a>
+                        </button>
                         {isAdmin && (
-                          <a className='text-danger' onClick={() => handleChannelDelete(channel)}>
+                          <button className='btn btn-link text-danger' onClick={() => handleChannelDelete(channel)}>
                             &times;
-                          </a>
+                          </button>
                         )}
                       </div>
                     </div>
@@ -110,9 +119,9 @@ const Chat = ({
                           {message.createdAt.substring(11, 19)}
                           &nbsp;
                           {isAdmin && (
-                            <a className='text-danger' onClick={() => handleMessageDelete(message, selectedChannel.alias)}>
+                            <button className='btn btn-link text-danger' onClick={() => handleMessageDelete(message, selectedChannel.alias)}>
                               &times;
-                            </a>
+                            </button>
                           )}
                         </small>
                       </div>
@@ -142,9 +151,9 @@ const Chat = ({
                       <div className='d-flex w-100 justify-content-between'>
                         {users.get(socketId)?.username}
                         {isAdmin && user?.username !== users.get(socketId)?.username  && (
-                          <a className='text-danger' onClick={() => handleUserRemove(socketId, selectedChannel.alias)}>
+                          <button className='btn btn-link text-danger' onClick={() => handleUserRemove(socketId, selectedChannel.alias)}>
                             &times;
-                          </a>
+                          </button>
                         )}
                       </div>
                     </li>

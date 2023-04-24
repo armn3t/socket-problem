@@ -13,6 +13,7 @@ export interface Channel {
   _id: string
   alias: string
   createdAt: string
+  protected: boolean
 }
 
 export interface ChannelData {

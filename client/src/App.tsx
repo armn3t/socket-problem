@@ -1,5 +1,7 @@
 import React from 'react'
 
+import { Container as ModalContainer } from 'react-modal-promise'
+
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from 'react-auth-kit'
 
@@ -16,6 +18,7 @@ function App() {
           <Navigation/>
           <AppRoutes/>
         </BrowserRouter>
+        <ModalContainer/>
       </AuthProvider>
     </div>
   );

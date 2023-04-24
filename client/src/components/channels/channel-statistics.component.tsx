@@ -10,8 +10,6 @@ type Props = {
 const ChannelStatisticsComponent = ({ channel, statistics, onStatisticsRefresh }: Props) => {
   const [showMessages, setShowMessages] = useState(false)
 
-  console.log('ChannelStatistics', channel, statistics)
-
   return (
     <div className='container mb-3'>
       Statistics
