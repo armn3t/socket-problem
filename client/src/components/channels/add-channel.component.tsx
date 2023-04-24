@@ -42,7 +42,7 @@ const AddChannel = ({ onNewChannel }: Props) => {
               type="text"
               placeholder="Optional password"
               value={password}
-              onChange={(event) => setNewChannel(event.target.value)}
+              onChange={(event) => setPassword(event.target.value)}
             />
             <button className='btn btn-primary' type="submit">Save</button>
           </div>

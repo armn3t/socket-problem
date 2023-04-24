@@ -9,6 +9,15 @@ export const userHandler = (io: Server, socket: Socket) => {
 
   socket.emit('one:user:list', { users: socketUserMap.getUsers() })
 
+  socket.on('disconnecting', () => {
+    socket.rooms.forEach((roomId: string) => {
+      if (roomId === socket.id) return
+      
+      socket.leave(roomId)
+      io.to(roomId).emit('all:channel:user:left', { alias: roomId, socketId: socket.id })
+    })
+  })
+
   socket.on('disconnect', () => {
     socketUserMap.remove(socket.id)
     io.emit('all:user:left', socket.id)

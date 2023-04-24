@@ -1,4 +1,4 @@
-import { SERVER_URL } from './api/url';
+import { SERVER_URL } from './api/api';
 import { io, Socket } from 'socket.io-client'
 
 export const getSocket = (token: string | null): Socket | null => {

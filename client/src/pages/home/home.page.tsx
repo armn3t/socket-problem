@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react'
 import { useAuthUser, useAuthHeader } from 'react-auth-kit'
 import { Socket, io } from 'socket.io-client'
 
-import { SERVER_URL } from '../../api/url'
+import { SERVER_URL } from '../../api/api'
 
 import { fetchChannels } from '../../api/channel'
 
@@ -24,6 +24,7 @@ const Home = () => {
 
   const fetchData = useCallback(async () => {
     const { channels } = await fetchChannels()
+
     setChannels(channels)
   }, [setChannels])
 
@@ -32,7 +33,6 @@ const Home = () => {
   }
 
   const handleChannelDelete = (channel: Channel) => {
-    console.log('HANDLE CHANNEL DELETE', channel)
     setChannels(channels.filter((oneChannel) => oneChannel.alias !== channel.alias))
   }
 

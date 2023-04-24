@@ -1,17 +1,23 @@
 import { Request, Response } from 'express'
+import bcrypt from 'bcryptjs'
 import Channel, { ChannelDocument } from '../models/channel.model'
 import Message from '../models/message.model'
 
 const channelController = {
   async fetch(req: Request, res: Response) {
-    const channels = await Channel.find().exec()
+    const channels = await Channel.find({}, { password: 0 }).exec()
     res.json({ channels })
   },
 
   async create(req: Request, res: Response) {
     try {
-      const { alias } = req.body
-      const newChannel: ChannelDocument = new Channel({ alias })
+      const { alias, password } = req.body
+      // const hashedPassword = password ? await bcrypt.hash(password, 10) : null;
+
+      const newChannelData: { alias: string, password?: string } = { alias }
+      if (password) newChannelData.password = await bcrypt.hash(password, 10)
+
+      const newChannel: ChannelDocument = new Channel(newChannelData)
       newChannel.save()
   
       res.json({ message: 'New channel created successfully', newChannel })

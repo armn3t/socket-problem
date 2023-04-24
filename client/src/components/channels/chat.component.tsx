@@ -13,9 +13,22 @@ type Props = {
   onChannelDelete: (channel: Channel) => void
   onChannelLeaving: (channel: Channel) => void
   onNewMessage: (message: string) => void
+  onMessageDelete: (message: Message, alias: string) => void
+  onUserRemove: (socketId: string, alias: string) => void
 }
 
-const Chat = ({ channels, selectedChannel, selectedChannelData, users, onChannelChange, onChannelDelete, onChannelLeaving, onNewMessage }: Props) => {
+const Chat = ({
+  channels,
+  selectedChannel,
+  selectedChannelData,
+  users,
+  onChannelChange,
+  onChannelDelete,
+  onChannelLeaving,
+  onNewMessage,
+  onMessageDelete,
+  onUserRemove
+}: Props) => {
   const [newMessage, setNewMessage] = useState<string>('')
   const user = useAuthUser()()
 
@@ -39,6 +52,14 @@ const Chat = ({ channels, selectedChannel, selectedChannelData, users, onChannel
 
   const handleChannelDelete = (channel: Channel) => {
     onChannelDelete(channel)
+  }
+
+  const handleMessageDelete = (message: Message, alias: string) => {
+    onMessageDelete(message, alias)
+  }
+
+  const handleUserRemove = (socketId: string, alias: string) => {
+    onUserRemove(socketId, alias)
   }
 
   return (
@@ -78,7 +99,7 @@ const Chat = ({ channels, selectedChannel, selectedChannelData, users, onChannel
                   {selectedChannel ? selectedChannel.alias : 'No channel selected'}
             </div>
             <div className='card-body chat-scroll chat-body'>
-              {selectedChannelData && selectedChannelData.messages && (
+              {selectedChannel && selectedChannelData && selectedChannelData.messages && (
                 <ul className='list-group list-group-flush'>
                   {selectedChannelData.messages.map((message: Message) => (
                     <li key={message._id} className='list-group-item'>
@@ -89,7 +110,7 @@ const Chat = ({ channels, selectedChannel, selectedChannelData, users, onChannel
                           {message.createdAt.substring(11, 19)}
                           &nbsp;
                           {isAdmin && (
-                            <a className='text-danger' onClick={() => {alert('IMPLEMENT DELETE MESSAGE FOR ADMIN')}}>
+                            <a className='text-danger' onClick={() => handleMessageDelete(message, selectedChannel.alias)}>
                               &times;
                             </a>
                           )}
@@ -114,14 +135,14 @@ const Chat = ({ channels, selectedChannel, selectedChannelData, users, onChannel
         <div className='col-3'>
           <div className='card h-100'>
             <div className='card-body chat-scroll'>
-              {selectedChannelData && selectedChannelData.channelUsers && (
+              {selectedChannel && selectedChannelData && selectedChannelData.channelUsers && (
                 <ul className='list-group list-group-flush'>
                   {[...selectedChannelData.channelUsers].map((socketId: string) => (
                     <li key={`channel_${socketId}`} className='list-group-item'>
                       <div className='d-flex w-100 justify-content-between'>
                         {users.get(socketId)?.username}
                         {isAdmin && user?.username !== users.get(socketId)?.username  && (
-                          <a className='text-danger' onClick={() => { alert('IMPLEMENT REMOVE USER FROM CHANNEL') }}>
+                          <a className='text-danger' onClick={() => handleUserRemove(socketId, selectedChannel.alias)}>
                             &times;
                           </a>
                         )}
