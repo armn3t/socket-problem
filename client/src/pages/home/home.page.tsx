@@ -17,7 +17,7 @@ const Home = () => {
   const auth = useAuthUser()
 
   const authHeader = useAuthHeader()
-  const [token, _] = useState(authHeader().split(' ')[1])
+  const token = authHeader().split(' ')[1]
 
   const user = auth()
 
@@ -40,7 +40,8 @@ const Home = () => {
     const newSocket = io(SERVER_URL, {
       auth: {
         token
-      }
+      },
+      secure: true
     })
     setSocket(newSocket)
 

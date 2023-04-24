@@ -142,7 +142,8 @@ const SocketMain = ({ channels, user, socket, onChannelDelete }: Props) => {
 
     function onChannelUserJoined({ alias, socketId }: UserJoinedChannelPayload) {
       const channelData = joinedChannelsMap.get(alias)
-      if (!channelData) return console.error('Something is wrong, throw')
+      console.log(channelData, 'CHANNELDATA', joinedChannelsMap)
+      if (!channelData) return console.error('Something is wrong when user is attempting to join channel, throw')
       
       const newChannelData = { ...channelData }
       newChannelData.channelUsers.add(socketId)
@@ -156,7 +157,7 @@ const SocketMain = ({ channels, user, socket, onChannelDelete }: Props) => {
 
     function onChannelUserLeft({ alias, socketId }: UserJoinedChannelPayload) {
       const channelData = joinedChannelsMap.get(alias)
-      if (!channelData) return console.error('Something is wrong, throw')
+      if (!channelData) return console.error('Something is wrong when user is attempting to leave channel, throw')
       
       const newChannelData = { ...channelData }
 

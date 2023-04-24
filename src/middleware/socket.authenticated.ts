@@ -1,5 +1,4 @@
 import { Socket } from 'socket.io'
-import socketUserMap from '../socket/socket-map'
 
 import { decodeToken } from '../utils/token-utils'
 
@@ -11,11 +10,6 @@ const socketisAuthenticated = async (socket: Socket, next: Function) => {
   if (!decoded || !decoded.username || !decoded.userId) throw new Error('Unauthorized')
 
   socket.data.user = decoded
-
-  socketUserMap.setUser(socket.id, {
-    username: decoded.username,
-    userId: decoded.userId
-  })
   next()
 }
 

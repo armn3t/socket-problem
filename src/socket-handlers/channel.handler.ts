@@ -43,9 +43,9 @@ export const channelHandler = (io: Server, socket: Socket) => {
     socket.join(channel.alias)
 
     const channelUsers = (await io.in(channel.alias).fetchSockets()).map(socket => socket.id)
-
+    
     socket.emit('one:channel:joined', { messages: messages.reverse(), channel, channelUsers })
-    io.to(channel.alias).emit('all:channel:user:joined', {
+    socket.broadcast.to(channel.alias).emit('all:channel:user:joined', {
       alias,
       socketId: socket.id
     })
@@ -53,7 +53,7 @@ export const channelHandler = (io: Server, socket: Socket) => {
 
   socket.on('one:channel:leave', (channel: ChannelDocument) => {
     socket.leave(channel.alias)
-    io.to(channel.alias).emit('all:channel:user:left', {
+    socket.broadcast.to(channel.alias).emit('all:channel:user:left', {
       alias: channel.alias,
       socketId: socket.id
     })

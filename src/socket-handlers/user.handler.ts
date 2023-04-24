@@ -5,6 +5,8 @@ export const userHandler = (io: Server, socket: Socket) => {
   const user = socket.data.user
   const userPayload = { socketId: socket.id, ...user }
 
+  socketUserMap.setUser(socket.id, user)
+
   io.emit('all:user:joined', userPayload)
 
   socket.emit('one:user:list', { users: socketUserMap.getUsers() })
@@ -19,7 +21,8 @@ export const userHandler = (io: Server, socket: Socket) => {
   })
 
   socket.on('disconnect', () => {
-    socketUserMap.remove(socket.id)
+    console.log('Socket disconnected', socket.id, io.of('/').sockets.size)
+    socketUserMap.remove(socket.id, user.username)
     io.emit('all:user:left', socket.id)
   })
 }
