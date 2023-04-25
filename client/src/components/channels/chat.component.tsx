@@ -4,8 +4,6 @@ import { useAuthUser } from 'react-auth-kit'
 
 import { Channel, ChannelData, Message, SocketUserPayload, UserRoles } from '../../types'
 
-import { join } from 'path'
-
 type Props = {
   channels: any[],
   selectedChannel: Channel | null,

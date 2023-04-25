@@ -11,7 +11,7 @@ import router from './router';
 
 import socketWrapper, { InterEvents, ListenEvents, ServerEvents, SocketData } from './socket/socket.wrapper';
 
-const secure = process.env.SECURE === 'true'
+const secure = !!+process.env.SECURE
 
 const options = {
   key: readFileSync(join(process.cwd(), 'ssl', 'key.pem')),
@@ -34,8 +34,6 @@ app.use('/api', router);
 app.get('*', (req, res) => {
   res.sendFile(join(process.cwd(), 'client', 'build', 'index.html'))
 })
-
-console.log(secure)
 
 const httpServer = secure ? createHttpsServer(options, app) : createServer(app)
 const io = new IOServer<ListenEvents, ServerEvents, InterEvents, SocketData>(

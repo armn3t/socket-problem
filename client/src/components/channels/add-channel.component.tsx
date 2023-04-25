@@ -16,7 +16,7 @@ const AddChannel = ({ onNewChannel }: Props) => {
     event.preventDefault()
 
     try {
-      const { message, newChannel } = await createChannel(newChannelAlias, password)
+      const { newChannel } = await createChannel(newChannelAlias, password)
       setNewChannel('')
       setPassword('')
       onNewChannel(newChannel)

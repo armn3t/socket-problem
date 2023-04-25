@@ -13,7 +13,7 @@ ENV file example
 PORT=4001
 MONGODB_URI="mongodb://127.0.0.1:27017/db"
 JWT_SECRET="supersecret"
-SECURE=true
+SECURE='1'
 NODE_TLS_REJECT_UNAUTHORIZED='0'
 ```
 
