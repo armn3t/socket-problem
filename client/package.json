@@ -8,7 +8,7 @@
     "@testing-library/user-event": "^13.5.0",
     "@types/axios": "^0.14.0",
     "@types/jest": "^27.5.2",
-    "@types/node": "^16.18.24",
+    "@types/node": "^16.18.39",
     "@types/react": "^18.0.37",
     "@types/react-auth-kit": "^1.2.1",
     "@types/react-bootstrap": "^0.32.32",
